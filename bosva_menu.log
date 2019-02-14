@@ -1,0 +1,9 @@
+[2019-02-12 14:04:17]Database connected
+[2019-02-12 14:04:17]to_database() missing 1 required positional argument: 'conn'
+[2019-02-12 14:04:37]Database connected
+[2019-02-12 14:04:37]log() missing 1 required positional argument: 'file'
+[2019-02-12 14:04:59]Database connected
+[2019-02-12 14:04:59]0updated.
+[2019-02-12 14:07:00]Already closed
+[2019-02-12 14:07:10]Database connected
+[2019-02-12 14:07:10]0updated.
