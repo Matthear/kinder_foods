@@ -6,50 +6,66 @@
 	<link rel="stylesheet" href="/static/css/bootstrap.min.css">  
 	<script src="/static/js/jquery-3.3.1.min.js"></script>
 	<script src="/static/js/bootstrap.min.js"></script>
+	
+	<script type="text/javascript">
+		function today()
+		{
+            // 获取今天日期
+			let d = new Date();
+			year = d.getFullYear();
+			month = d.getMonth();
+			day = d.getDate();
+			return year + '-' + month + '-' + day
+		}
+		
+		function is_query_date(date)
+		{
+			//判断菜单上某天是否与查询日期一致，一致就高亮格式
+			return false
+		}
+	</script>
+	
+	<script type="text/javascript">
+		$(document).ready(function(){
+			$.post("/ajax/",
+				//{'query_date': today(), 'csrfmiddlewaretoken': '{{ csrf_token }}'},
+				{'query_date': '2019-2-15', 'csrfmiddlewaretoken': '{{ csrf_token }}'}, // for test purpose
+				function(data, status){
+					for (let query_date in data) { 
+						menu = data[query_date];
+						if (status == 'success' & menu != null) {
+							let html;
+							for (let date in menu) {
+								if (query_date == date) { html += '<tr><th>' + date + '</th>'; } // 该日期与查询日期一致，高亮显示
+								else { html += '<tr><td>' + date + '</td>'; }
+								let meals = menu[date];
+								for (let meal in meals) {
+									let dishes = meals[meal];
+									html += '<td>' + dishes + '</td>'; //菜品
+								}
+								html += '</tr>'
+					        }
+							$('tbody').html(html);
+						} else { alert('当前查询的日期没有数据哦！'); }
+				    } 
+				});
+		});
+	</script>
 </head>
-<body>
 
+<body>
 <table class="table">
-	<caption>2019/2/18-2019/2/22</caption>
    <thead>
       <tr>
          <th></th>
          <th>早点</th>
 		 <th>午餐</th>
 		 <th>午点</th>
+		 <th>体弱儿营养菜</th>
       </tr>
    </thead>
    <tbody>
-      <tr>
-         <td>周一</td>
-         <td>面包</td>
-		 <td>馒头</td>
-		 <td>饺子</td>
-      </tr>
-      <tr>
-         <td>周二</td>
-         <td>面包</td>
-		 <td>馒头</td>
-		 <td>饺子</td>
-      </tr>
-	  <tr>
-         <td>周三</td>
-         <td>面包</td>
-		 <td>馒头</td>
-		 <td>饺子</td>
-      </tr>
-	  <tr>
-         <td>周四</td>
-         <td>面包</td>
-		 <td>馒头</td>
-		 <td>饺子</td>
-      </tr>
-	  <tr>
-         <td>周五</td>
-         <td>面包</td>
-		 <td>馒头</td>
-		 <td>饺子</td>
-      </tr>
+      
    </tbody>
 </table>
 

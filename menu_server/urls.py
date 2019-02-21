@@ -15,7 +15,10 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path
+import menu.views as views
 
 urlpatterns = [
     path('admin/', admin.site.urls),
+    path('menu/', views.show_menu),
+    path('ajax/', views.ajax),
 ]
