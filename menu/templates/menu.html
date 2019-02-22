@@ -4,13 +4,16 @@
 	<meta charset="utf-8"> 
 	<title>博士娃幼儿园每周菜谱</title>
 	<link rel="stylesheet" href="/static/css/bootstrap.min.css">  
-	<script src="/static/js/jquery-3.3.1.min.js"></script>
-	<script src="/static/js/bootstrap.min.js"></script>
+	<link rel="stylesheet" href="/static/css/bootstrap-datetimepicker.min.css"  media="screen">
+	<script type="text/javascript" src="/static/js/jquery-3.3.1.min.js"></script>
+	<script type="text/javascript" src="/static/js/bootstrap.min.js"></script>
+	<script type="text/javascript" src="/static/js/bootstrap-datetimepicker.js" charset="UTF-8"></script>
+	<script type="text/javascript" src="/static/js/locales/bootstrap-datetimepicker.zh-CN.js" charset="UTF-8"></script>
 	
 	<script type="text/javascript">
 		function today()
 		{
-            // 获取今天日期
+            // 获取今天日期，格式：'yyyy-m-d'(eg: '2019-2-21')
 			let d = new Date();
 			year = d.getFullYear();
 			month = d.getMonth();
@@ -18,56 +21,104 @@
 			return year + '-' + month + '-' + day
 		}
 		
-		function is_query_date(date)
+		function getWeekday(date)
 		{
-			//判断菜单上某天是否与查询日期一致，一致就高亮格式
-			return false
+			// 获取某日期是星期几
+			let date_Date = new Date(Date.parse(date));
+			let day = date_Date.getDay();
+			var weekday=["星期日","星期一","星期二","星期三","星期四","星期五","星期六"];
+			return weekday[day];
 		}
+		
+		function do_ajax(query_date)
+		{
+			// AJAX POST，携带查询日期，根据返回JSON更新菜单tbody
+			$.post("/ajax/",
+				{'query_date': query_date, 'csrfmiddlewaretoken': '{{ csrf_token }}'}, // for test purpose
+				function(data, status){
+					for (let query_date_return in data) { 
+						menu = data[query_date_return];
+						if (status == 'success' & menu != null) {
+							let html;
+							for (let date in menu) {
+								if (query_date_return == date) { html += '<tr class="success"><th class="text-center">' + date + '<br>' + getWeekday(date) + '</th>'; } // 该日期与查询日期一致，高亮显示
+								else { html += '<tr><th class="text-center">' + date + '<br>' + getWeekday(date) + '</th>'; }
+								let meals = menu[date];
+								for (let meal in meals) {
+									let dishes = meals[meal];
+									html += '<td class="text-center">' + dishes + '</td>'; //菜品
+								}
+								html += '</tr>'
+					        }
+							$("#menu").html(html);
+						} else { alert('这个日期没有数据哦！'); } //查询的日期没有数据
+				    } 
+			});
+		}
+		
 	</script>
 	
 	<script type="text/javascript">
 		$(document).ready(function(){
-			$.post("/ajax/",
-				//{'query_date': today(), 'csrfmiddlewaretoken': '{{ csrf_token }}'},
-				{'query_date': '2019-2-15', 'csrfmiddlewaretoken': '{{ csrf_token }}'}, // for test purpose
-				function(data, status){
-					for (let query_date in data) { 
-						menu = data[query_date];
-						if (status == 'success' & menu != null) {
-							let html;
-							for (let date in menu) {
-								if (query_date == date) { html += '<tr><th>' + date + '</th>'; } // 该日期与查询日期一致，高亮显示
-								else { html += '<tr><td>' + date + '</td>'; }
-								let meals = menu[date];
-								for (let meal in meals) {
-									let dishes = meals[meal];
-									html += '<td>' + dishes + '</td>'; //菜品
-								}
-								html += '</tr>'
-					        }
-							$('tbody').html(html);
-						} else { alert('当前查询的日期没有数据哦！'); }
-				    } 
-				});
+			do_ajax(today());
+			//do_ajax('2019-02-15');
+			$('.form_date').datetimepicker({
+			// 初始化日期选择器
+				language:  'zh-CN',
+				weekStart: 1,
+				todayBtn:  1,
+				autoclose: 1,
+				todayHighlight: 1,
+				startView: 2,
+				minView: 2,
+				forceParse: 0
+			});
+			
+			$('.form_date').datetimepicker().on('changeDate', function(e) {
+			// 选择日期发生变化
+				let new_query_date = $('.form-control').val();
+				// 通过AJAX发送新的请求，参数为选择的日期
+				do_ajax(new_query_date);
+			});
 		});
 	</script>
+
 </head>
 
 <body>
-<table class="table">
+
+<div class="container">
+    <form action="" class="form-horizontal"  role="form">
+        <fieldset>
+			<div class="form-group">
+                <label for="dtp_input2" class="col-md-2 control-label">选择日期</label>
+                <div class="input-group date form_date col-md-5" data-date="" data-date-format="yyyy-mm-dd" data-link-field="dtp_input2" data-link-format="yyyy-mm-dd">
+                    <input class="form-control" size="16" type="text" value="" readonly>
+                    <span class="input-group-addon"><span class="glyphicon glyphicon-remove"></span></span>
+					<span class="input-group-addon"><span class="glyphicon glyphicon-calendar"></span></span>
+                </div>
+				<input type="hidden" id="dtp_input2" value="" /><br/>
+            </div>
+        </fieldset>
+    </form>
+</div>
+
+
+<div class="table-responsive">
+<table class="table table-bordered">
    <thead>
       <tr>
-         <th></th>
-         <th>早点</th>
-		 <th>午餐</th>
-		 <th>午点</th>
-		 <th>体弱儿营养菜</th>
+         <th class="text-center">日期</th>
+         <th class="text-center">早点</th>
+		 <th class="text-center">午餐</th>
+		 <th class="text-center">午点</th>
+		 <th class="text-center">体弱儿营养菜</th>
       </tr>
    </thead>
-   <tbody>
+   <tbody id='menu'>
       
    </tbody>
 </table>
-
+</div>
 </body>
 </html>

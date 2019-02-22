@@ -9,6 +9,8 @@ import pymysql.cursors
 # Create your views here.
 def ajax(request):
     if request.method == 'POST':
+        # 获取页面请求的日期，如果没有，则默认为当前日期（UTC+8）
+        # 页面时区以浏览器自动调整
         query_date = request.POST.get('query_date', datetime.now(timezone(timedelta(hours=8))).strftime('%Y-%m-%d'))
         query_date_menu = db_query(query_date)
         for k, v in query_date_menu.items():
@@ -17,7 +19,7 @@ def ajax(request):
         if menu:
             menu_sort = sort(menu)
             query_date_menu[date_in_subquery] = menu_sort
-        data = json.dumps(query_date_menu) # 如果没有查询到响应日期的菜单, menu==None -> data==null 
+        data = json.dumps(query_date_menu) # 如果没有查询到相应日期的菜单, menu==None -> data==null 
         return HttpResponse(data, content_type='application/json')
     
 def show_menu(request):
@@ -31,9 +33,10 @@ def db_query(query_date):
     day = int(year_month_day[2])
     date_in_subquery = datetime(year, month, day).strftime('%Y-%m-%d')
     
+    # 查询数据库
     connection = pymysql.connect(host='localhost',
                                 user='root',
-                                password='mysql',
+                                password='ZJZAnAn4ever',
                                 db='test',
                                 charset='utf8',
                                 cursorclass=pymysql.cursors.DictCursor)
@@ -47,9 +50,15 @@ def db_query(query_date):
     finally:
         connection.close()
     
+    # 没有结果的情况
     if len(result) == 0:
-        return None
+        return {date_in_subquery: None}
     
+    # 查询成功有结果的情况
+    # 数据结构：{query_date: {date1: { 'diet1': 'food1<br><food2>', 'diet2': 'food3<br>food4', 'diet3': 'food5<br>food6' } },
+    #                        {date2: { 'diet1': 'food1<br><food2>', 'diet2': 'food3<br>food4', 'diet3': 'food5<br>food6' } },
+    #                        ...
+    #                        {date5: { 'diet1': 'food1<br><food2>', 'diet2': 'food3<br>food4', 'diet3': 'food5<br>food6' } }}
     week = result[0]['week']
     menu = {}
     for row in result:
@@ -63,7 +72,7 @@ def db_query(query_date):
             menu[date] = {diet: food} if comment == '' else {diet: food + '（' + comment + '）'}
         else:
             if diet in menu[date].keys():
-    #             更新某餐点的菜品
+    #             更新某餐点（diet）的菜品（food）
                 menu[date][diet] = menu[date][diet] + '<br>' + food if comment == '' else \
                 menu[date][diet] + '<br>' + food + '（' + comment + '）'
             else:
