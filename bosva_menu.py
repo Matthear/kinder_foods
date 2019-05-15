@@ -1,7 +1,9 @@
+# -*- coding: utf-8 -*-
+# %%
 
 # coding: utf-8
 
-# In[1]:
+# %%
 
 
 import requests
@@ -12,13 +14,13 @@ import itertools
 import re
 
 
-# In[ ]:
+# %%
 
 
 url = 'http://www.bosva.cn/'
 
 
-# In[8]:
+# %%
 
 
 def log(log, file):
@@ -26,7 +28,7 @@ def log(log, file):
         print('[' + datetime.now().strftime('%Y-%m-%d %H:%M:%S') + ']' + log, file=f)
 
 
-# In[3]:
+# %%
 
 
 def load_html(url):
@@ -46,6 +48,7 @@ def load_html(url):
     for i,p in enumerate(cells):
         if i < 5: # 日期
             for string in p.stripped_strings:
+                string = string.replace(' ', '') # 2019-05-15 发现日期中有多余的空格
                 match = date_pat.match(string)
                 if match:
                     date.append(datetime.strptime(string, '%Y-%m-%d'))
@@ -76,7 +79,7 @@ def load_html(url):
     return row
 
 
-# In[14]:
+# %%
 
 
 def db_connect(host='localhost', user='root', password='ZJZAnAn4ever', db='test', charset='utf8'): # password='mysql'
@@ -102,7 +105,7 @@ def to_database(row, conn):
     return rows_affected
 
 
-# In[15]:
+# %%
 
 
 if __name__ == '__main__' and '__file__' not in globals():
